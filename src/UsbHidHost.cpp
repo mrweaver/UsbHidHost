@@ -1,5 +1,5 @@
-// --- START OF FILE UsbHostHid.cpp ---
-#include "UsbHostHid.h"
+// --- START OF FILE UsbHidHost.cpp ---
+#include "UsbHidHost.h"
 
 /**
  * @brief HID Protocol string names
@@ -9,7 +9,7 @@ static const std::vector<std::string> HID_PROTO_NAMES = {
     "Keyboard",
     "Mouse"};
 
-UsbHostHid::UsbHostHid()
+UsbHidHost::UsbHidHost()
     : hidProcessorTaskHandle(nullptr),
       usbLibTaskHandle(nullptr)
 {
@@ -20,7 +20,7 @@ UsbHostHid::UsbHostHid()
     }
 }
 
-UsbHostHid::~UsbHostHid()
+UsbHidHost::~UsbHidHost()
 {
     deinit();
     if (eventQueue != nullptr)
@@ -29,7 +29,7 @@ UsbHostHid::~UsbHostHid()
     }
 }
 
-esp_err_t UsbHostHid::init()
+esp_err_t UsbHidHost::init()
 {
     // Create the USB lib task
     BaseType_t taskCreated = xTaskCreate(
@@ -70,7 +70,7 @@ esp_err_t UsbHostHid::init()
     return ESP_OK;
 }
 
-esp_err_t UsbHostHid::deinit()
+esp_err_t UsbHidHost::deinit()
 {
     if (hidProcessorTaskHandle != nullptr)
     {
@@ -103,7 +103,7 @@ esp_err_t UsbHostHid::deinit()
     return ret;
 }
 
-esp_err_t UsbHostHid::start()
+esp_err_t UsbHidHost::start()
 {
     BaseType_t task_created = xTaskCreate(
         hidEventProcessorTaskTrampoline,
@@ -124,7 +124,7 @@ esp_err_t UsbHostHid::start()
     return ESP_OK;
 }
 
-esp_err_t UsbHostHid::stop()
+esp_err_t UsbHidHost::stop()
 {
     if (hidProcessorTaskHandle != nullptr)
     {
@@ -138,12 +138,12 @@ esp_err_t UsbHostHid::stop()
  * @brief Start USB Host install and handle common USB host library events while app pin not low
  *
  */
-void UsbHostHid::usbLibTask(void* pvParameters)
+void UsbHidHost::usbLibTask(void* pvParameters)
 {
     const usb_host_config_t host_config = {
         .skip_phy_setup = false,
         .intr_flags     = ESP_INTR_FLAG_LEVEL1,
-        .enum_filter_cb = usbEnumerationFilterCallback,
+        // .enum_filter_cb = usbEnumerationFilterCallback,
     };
 
     esp_err_t ret = usb_host_install(&host_config);
@@ -212,45 +212,45 @@ void UsbHostHid::usbLibTask(void* pvParameters)
     vTaskDelete(NULL);
 }
 
-bool UsbHostHid::usbEnumerationFilterCallback(const usb_device_desc_t* dev_desc, uint8_t* bConfigurationValue)
+// bool UsbHidHost::usbEnumerationFilterCallback(const usb_device_desc_t* dev_desc, uint8_t* bConfigurationValue)
+// {
+//     ESP_LOGI(TAG, "USB Device Enumeration:");
+//     ESP_LOGI(TAG, "  Descriptor Length: %d", dev_desc->bLength);
+//     ESP_LOGI(TAG, "  Descriptor Type: 0x%02X", dev_desc->bDescriptorType);
+//     ESP_LOGI(TAG, "  USB Version: %d.%02d", dev_desc->bcdUSB >> 8, dev_desc->bcdUSB & 0xFF);
+//     ESP_LOGI(TAG, "  Device Class: 0x%02X", dev_desc->bDeviceClass);
+//     ESP_LOGI(TAG, "  Device Subclass: 0x%02X", dev_desc->bDeviceSubClass);
+//     ESP_LOGI(TAG, "  Device Protocol: 0x%02X", dev_desc->bDeviceProtocol);
+//     ESP_LOGI(TAG, "  Max Packet Size (EP0): %d", dev_desc->bMaxPacketSize0);
+//     ESP_LOGI(TAG, "  Vendor ID: 0x%04X", dev_desc->idVendor);
+//     ESP_LOGI(TAG, "  Product ID: 0x%04X", dev_desc->idProduct);
+//     ESP_LOGI(TAG, "  Device Version: %d.%02d", dev_desc->bcdDevice >> 8, dev_desc->bcdDevice & 0xFF);
+//     ESP_LOGI(TAG, "  Manufacturer String Index: %d", dev_desc->iManufacturer);
+//     ESP_LOGI(TAG, "  Product String Index: %d", dev_desc->iProduct);
+//     ESP_LOGI(TAG, "  Serial Number String Index: %d", dev_desc->iSerialNumber);
+//     ESP_LOGI(TAG, "  Num Configurations: %d", dev_desc->bNumConfigurations);
+
+//     // Check for specific devices if needed
+//     if (dev_desc->idVendor == 0x0C40 && dev_desc->idProduct == 0x7A1C)
+//     {
+//         ESP_LOGI(TAG, "  G20s Pro detected!");
+//         // You could set a specific configuration for this device if needed
+//         // *bConfigurationValue = ...;
+//     }
+
+//     // Use the first configuration by default
+//     *bConfigurationValue = 1;
+
+//     // Return true to allow enumeration for all devices
+//     return true;
+// }
+
+void UsbHidHost::hidEventProcessorTaskTrampoline(void* arg)
 {
-    ESP_LOGI(TAG, "USB Device Enumeration:");
-    ESP_LOGI(TAG, "  Descriptor Length: %d", dev_desc->bLength);
-    ESP_LOGI(TAG, "  Descriptor Type: 0x%02X", dev_desc->bDescriptorType);
-    ESP_LOGI(TAG, "  USB Version: %d.%02d", dev_desc->bcdUSB >> 8, dev_desc->bcdUSB & 0xFF);
-    ESP_LOGI(TAG, "  Device Class: 0x%02X", dev_desc->bDeviceClass);
-    ESP_LOGI(TAG, "  Device Subclass: 0x%02X", dev_desc->bDeviceSubClass);
-    ESP_LOGI(TAG, "  Device Protocol: 0x%02X", dev_desc->bDeviceProtocol);
-    ESP_LOGI(TAG, "  Max Packet Size (EP0): %d", dev_desc->bMaxPacketSize0);
-    ESP_LOGI(TAG, "  Vendor ID: 0x%04X", dev_desc->idVendor);
-    ESP_LOGI(TAG, "  Product ID: 0x%04X", dev_desc->idProduct);
-    ESP_LOGI(TAG, "  Device Version: %d.%02d", dev_desc->bcdDevice >> 8, dev_desc->bcdDevice & 0xFF);
-    ESP_LOGI(TAG, "  Manufacturer String Index: %d", dev_desc->iManufacturer);
-    ESP_LOGI(TAG, "  Product String Index: %d", dev_desc->iProduct);
-    ESP_LOGI(TAG, "  Serial Number String Index: %d", dev_desc->iSerialNumber);
-    ESP_LOGI(TAG, "  Num Configurations: %d", dev_desc->bNumConfigurations);
-
-    // Check for specific devices if needed
-    if (dev_desc->idVendor == 0x0C40 && dev_desc->idProduct == 0x7A1C)
-    {
-        ESP_LOGI(TAG, "  G20s Pro detected!");
-        // You could set a specific configuration for this device if needed
-        // *bConfigurationValue = ...;
-    }
-
-    // Use the first configuration by default
-    *bConfigurationValue = 1;
-
-    // Return true to allow enumeration for all devices
-    return true;
+    static_cast<UsbHidHost*>(arg)->hidEventProcessorTask();
 }
 
-void UsbHostHid::hidEventProcessorTaskTrampoline(void* arg)
-{
-    static_cast<UsbHostHid*>(arg)->hidEventProcessorTask();
-}
-
-void UsbHostHid::hidEventProcessorTask()
+void UsbHidHost::hidEventProcessorTask()
 {
     UsbHidEvent event;
     BaseType_t xResult;
@@ -270,7 +270,7 @@ void UsbHostHid::hidEventProcessorTask()
     }
 }
 
-void UsbHostHid::hidHostDeviceCallback(hid_host_device_handle_t hid_device_handle,
+void UsbHidHost::hidHostDeviceCallback(hid_host_device_handle_t hid_device_handle,
                                        const hid_host_driver_event_t event,
                                        void* arg)
 {
@@ -286,13 +286,13 @@ void UsbHostHid::hidHostDeviceCallback(hid_host_device_handle_t hid_device_handl
     ESP_LOGI(TAG, "Device Params - Address: %d, Interface: %d, SubClass: %d, Protocol: %d",
              dev_params.addr, dev_params.iface_num, dev_params.sub_class, dev_params.proto);
 
-    UsbHostHid* self = static_cast<UsbHostHid*>(arg);
+    UsbHidHost* self = static_cast<UsbHidHost*>(arg);
 
     UsbHidEvent e(hid_device_handle, event, arg);
     self->addEventToQueue(e);
 }
 
-void UsbHostHid::hidHostInterfaceCallback(hid_host_device_handle_t hid_device_handle,
+void UsbHidHost::hidHostInterfaceCallback(hid_host_device_handle_t hid_device_handle,
                                           const hid_host_interface_event_t event,
                                           void* arg)
 {
@@ -304,7 +304,7 @@ void UsbHostHid::hidHostInterfaceCallback(hid_host_device_handle_t hid_device_ha
     hid_host_dev_info_t dev_info;
     ESP_ERROR_CHECK(hid_host_get_device_info(hid_device_handle, &dev_info));
 
-    UsbHostHid& self = *static_cast<UsbHostHid*>(arg);
+    UsbHidHost& self = *static_cast<UsbHidHost*>(arg);
 
     switch (event)
     {
@@ -366,7 +366,7 @@ void UsbHostHid::hidHostInterfaceCallback(hid_host_device_handle_t hid_device_ha
  * @param[in] event              HID Host Device event
  * @param[in] arg                Pointer to arguments, does not used
  */
-void UsbHostHid::handleHidHostEvent(hid_host_device_handle_t hid_device_handle,
+void UsbHidHost::handleHidHostEvent(hid_host_device_handle_t hid_device_handle,
                                     const hid_host_driver_event_t event,
                                     void* arg)
 {
@@ -438,7 +438,7 @@ void UsbHostHid::handleHidHostEvent(hid_host_device_handle_t hid_device_handle,
     }
 }
 
-void UsbHostHid::addEventToQueue(const UsbHidEvent& event)
+void UsbHidHost::addEventToQueue(const UsbHidEvent& event)
 {
     if (xQueueSend(eventQueue, &event, 0) != pdTRUE)
     {

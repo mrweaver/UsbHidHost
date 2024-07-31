@@ -22,7 +22,7 @@
 #include "reports/UsbHidMouseReport.h"
 #include "reports/UsbHidGenericReport.h"
 
-class UsbHostHid
+class UsbHidHost
 {
 public:
     struct UsbHidEvent
@@ -38,8 +38,8 @@ public:
         std::vector<uint8_t> reportData;
     };
 
-    UsbHostHid();
-    ~UsbHostHid();
+    UsbHidHost();
+    ~UsbHidHost();
 
     esp_err_t init();
     esp_err_t deinit();
@@ -56,7 +56,7 @@ public:
     UsbHidGenericReport* reportGeneric() { return &genericReport; }
 
 private:
-    static constexpr const char* TAG                         = "UsbHostHid";
+    static constexpr const char* TAG                         = "UsbHidHost";
     static constexpr size_t EVENT_QUEUE_SIZE                 = 10;
     static constexpr size_t USB_TASK_STACK_SIZE              = 8192;
     static constexpr UBaseType_t USB_TASK_PRIORITY           = 2;
@@ -92,5 +92,5 @@ private:
 
     void addEventToQueue(const UsbHidEvent& event);
 
-    static bool usbEnumerationFilterCallback(const usb_device_desc_t *dev_desc, uint8_t *bConfigurationValue);
+    // static bool usbEnumerationFilterCallback(const usb_device_desc_t* dev_desc, uint8_t* bConfigurationValue);
 };
