@@ -3,13 +3,15 @@
   "version": "0.1.0",
   "description": "A library for ESP32 with USB capabilities to act as a HID Host, allowing for the use of devices such as mice and keyboards.",
   "keywords": "esp32, usb, hid, host, mouse, keyboard",
-  "repository":
-  {
+  "repository": {
     "type": "git",
     "url": "https://github.com/mrweaver/UsbHidHost.git"
   },
-  "authors":
-  [
+  "build": {
+    "includeDir": "include",
+    "srcDir": "src"
+  },
+  "authors": [
     {
       "name": "Michael Weaver",
       "email": "michael.robert.weaver@gmail.com",
@@ -18,17 +20,19 @@
   ],
   "license": "MIT",
   "homepage": "https://github.com/mrweaver/UsbHidHost",
-  "frameworks": "arduino",
+  "frameworks": [
+    "arduino",
+    "espidf"
+  ],
   "platforms": "espressif32",
-  "dependencies": {
-  },
+  "dependencies": {},
   "examples": [
     {
-        "name": "Basic",
-        "base": "examples/basic",
-        "files": [
-            "main.cpp"
-        ]
+      "name": "Basic",
+      "base": "examples/basic",
+      "files": [
+        "main.cpp"
+      ]
     }
   ]
 }
