@@ -18,8 +18,8 @@ const std::unordered_map<G20sProBtn, ButtonCode> UsbHidG20sProReport::btnCodeMap
     {G20sProBtn::Up, {0x01, 0x52}},
     {G20sProBtn::Right, {0x01, 0x4F}},
     {G20sProBtn::Enter, {0x01, 0x28}},
-    {G20sProBtn::Back, {0x04, 0x0224}},
-    {G20sProBtn::Home, {0x04, 0x0223}},
+    {G20sProBtn::Back, {0x04, 0x24}},
+    {G20sProBtn::Home, {0x04, 0x23}},
     {G20sProBtn::VolDown, {0x04, 0xEA}},
     {G20sProBtn::Mic, {0x04, 0xCF}},
     {G20sProBtn::VolUp, {0x04, 0xE9}},
@@ -131,9 +131,9 @@ void UsbHidG20sProReport::processMouseReport(const uint8_t* data, int length)
 
 void UsbHidG20sProReport::processButtonReport(const uint8_t* data, int length)
 {
-    report_.reportId = data[0];
+    report_.reportId            = data[0];
     report_.data.button.keyCode = 0;
-    uint8_t nonZeroCount = 0;
+    uint8_t nonZeroCount        = 0;
 
     for (int i = 1; i < length; ++i)
     {
@@ -161,8 +161,6 @@ void UsbHidG20sProReport::processButtonReport(const uint8_t* data, int length)
         lastPressedButton = buttonFromCode(report_.reportId, report_.data.button.keyCode);
     }
 }
-
-
 
 UsbHidG20sProEvent UsbHidG20sProReport::createEvent() const
 {
