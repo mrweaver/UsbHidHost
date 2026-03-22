@@ -1,5 +1,6 @@
 // --- START OF FILE UsbHidHost.cpp ---
 #include "UsbHidHost.h"
+#include "esp_heap_caps.h"
 
 /**
  * @brief HID Protocol string names
@@ -105,13 +106,14 @@ esp_err_t UsbHidHost::deinit()
 
 esp_err_t UsbHidHost::start()
 {
-    BaseType_t task_created = xTaskCreate(
+    BaseType_t task_created = xTaskCreateWithCaps(
         hidEventProcessorTaskTrampoline,
         "hidEventProcessor",
         USB_TASK_STACK_SIZE,
         this,
         HID_PROCESSOR_TASK_PRIORITY,
-        &hidProcessorTaskHandle);
+        &hidProcessorTaskHandle,
+        MALLOC_CAP_SPIRAM);
 
     if (task_created != pdPASS)
     {
